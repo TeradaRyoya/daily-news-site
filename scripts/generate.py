@@ -29,7 +29,7 @@ SECTIONS = [
         "title": "🏠 国内ニュース",
         "color": "#22c55e", "text": "#166534", "bg": "#f0fdf4",
         "type": "simple",
-        "params": {"country": "jp", "language": "ja", "category": "nation", "size": 5},
+        "params": {"country": "jp", "language": "ja", "category": "domestic", "size": 5},
     },
     {
         "title": "🌍 国際・経済ニュース",
@@ -53,11 +53,14 @@ SECTIONS = [
         "type": "subsections",
         "subsections": [
             {"label": "遊戯王",
-             "params": {"language": "ja", "q": "遊戯王", "size": 3}},
+             "params": {"language": "ja", "q": "遊戯王", "size": 5},
+             "filter_keywords": ["遊戯王"]},
             {"label": "ユニオンアリーナ",
-             "params": {"language": "ja", "q": "ユニオンアリーナ", "size": 3}},
+             "params": {"language": "ja", "q": "ユニオンアリーナ", "size": 5},
+             "filter_keywords": ["ユニオンアリーナ"]},
             {"label": "ホロライブカードゲーム",
-             "params": {"language": "ja", "q": "ホロライブ カードゲーム", "size": 3}},
+             "params": {"language": "ja", "q": "ホロライブ カードゲーム", "size": 5},
+             "filter_keywords": ["ホロライブ"]},
         ],
     },
     {
@@ -157,6 +160,13 @@ def render_section(section: dict, api_key: str) -> str:
         subs: list[str] = []
         for sub in section["subsections"]:
             articles = fetch_news(api_key, sub["params"])
+            keywords = sub.get("filter_keywords", [])
+            if keywords:
+                articles = [
+                    a for a in articles
+                    if any(kw in (a.get("title") or "") or kw in (a.get("description") or "")
+                           for kw in keywords)
+                ]
             cards = "".join(render_card(a) for a in articles) if articles else render_empty(sub["label"])
             subs.append(
                 f'<div class="subsection">'
