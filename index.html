@@ -6,35 +6,81 @@
   <title>2026年05月19日（火） 天気・ニュース</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #f4f4f5; color: #18181b; line-height: 1.6; }
-    a { color: inherit; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: #f4f4f5; color: #18181b; line-height: 1.6;
+    }
 
-    .header { background: #fff; border-bottom: 1px solid #e4e4e7; padding: 14px 20px; }
+    /* Header */
+    .header {
+      background: #fff; border-bottom: 1px solid #e4e4e7;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 10;
+    }
     .header h1 { font-size: 1rem; font-weight: 600; color: #52525b; }
     .header h1 strong { color: #18181b; }
 
-    .main { max-width: 720px; margin: 20px auto; padding: 0 16px 48px; }
+    /* Layout */
+    .main {
+      max-width: 760px; margin: 20px auto;
+      padding: 0 16px 48px; display: flex; flex-direction: column; gap: 16px;
+    }
 
-    .weather { background: #fef9c3; border: 1px solid #fde047; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; }
-    .weather-label { font-size: 0.75rem; font-weight: 700; color: #854d0e; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    /* Weather card */
+    .weather {
+      background: #fef9c3; border: 1px solid #fde047;
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .weather-label {
+      font-size: 0.75rem; font-weight: 700; color: #854d0e;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+    }
     .weather-row { display: flex; align-items: center; gap: 12px; }
     .weather-emoji { font-size: 2.4rem; line-height: 1; }
     .weather-temp { font-size: 1.9rem; font-weight: 800; color: #713f12; }
     .weather-desc { font-size: 0.9rem; color: #92400e; margin-top: 2px; }
     .weather-meta { display: flex; gap: 16px; margin-top: 10px; font-size: 0.82rem; color: #78350f; }
 
-    .section-head { font-size: 0.8rem; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+    /* News section wrapper */
+    .news-section {
+      background: #fff; border-radius: 10px;
+      border: 1px solid #e4e4e7; overflow: hidden;
+    }
+    .section-head { padding: 11px 16px; }
+    .section-head h2 { font-size: 0.93rem; font-weight: 700; }
 
-    .card { background: #fff; border-radius: 8px; border: 1px solid #e4e4e7; padding: 14px 16px; margin-bottom: 10px; }
-    .card h3 { font-size: 0.92rem; font-weight: 600; line-height: 1.5; }
+    /* Subsections (card games) */
+    .subsections { display: flex; flex-direction: column; }
+    .subsection { border-top: 1px solid #f0f0f0; }
+    .sub-label {
+      padding: 7px 16px; font-size: 0.75rem; font-weight: 700;
+      background: #fafafa; letter-spacing: 0.03em;
+    }
+
+    /* Cards container */
+    .cards { padding: 10px 12px 4px; }
+
+    /* Individual card */
+    .card {
+      border-radius: 6px; border: 1px solid #ececec;
+      padding: 11px 13px; margin-bottom: 8px; background: #fafafa;
+    }
+    .card h3 { font-size: 0.87rem; font-weight: 600; line-height: 1.5; }
     .card h3 a { text-decoration: none; color: #18181b; }
     .card h3 a:hover { color: #2563eb; text-decoration: underline; }
-    .card .desc { font-size: 0.8rem; color: #71717a; margin-top: 5px; }
-    .card .tag { display: inline-block; margin-top: 8px; font-size: 0.72rem; color: #a1a1aa; background: #f4f4f5; padding: 2px 8px; border-radius: 99px; }
+    .card .desc { font-size: 0.78rem; color: #71717a; margin-top: 4px; }
+    .card .tag {
+      display: inline-block; margin-top: 6px;
+      font-size: 0.7rem; color: #a1a1aa; background: #efefef;
+      padding: 1px 7px; border-radius: 99px;
+    }
+    .card-empty {
+      background: #f9f9f9; border-style: dashed;
+      font-size: 0.8rem; color: #a1a1aa;
+    }
 
+    /* Footer */
     .footer { text-align: center; padding: 20px; font-size: 0.75rem; color: #a1a1aa; }
     .footer a { color: #a1a1aa; text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -42,77 +88,31 @@
     <h1>📰 <strong>2026年05月19日（火）</strong> 天気・ニュース</h1>
   </header>
   <main class="main">
+
     <div class="weather">
       <div class="weather-label">☀️ Nagoyaの天気</div>
       <div class="weather-row">
         <span class="weather-emoji">☀️</span>
         <div>
           <div class="weather-temp">29.4°C</div>
-          <div class="weather-desc">晴天（体感 29.8°C）</div>
+          <div class="weather-desc">晴天（体感 28.2°C）</div>
         </div>
       </div>
       <div class="weather-meta">
-        <span>💧 湿度 47%</span>
-        <span>🌬️ 風速 1.79 m/s</span>
+        <span>💧 湿度 30%</span>
+        <span>🌬️ 風速 2.24 m/s</span>
       </div>
     </div>
 
-    <div class="section-head">📰 今日のニュース</div>
-    
-      <article class="card">
-        <h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540374" target="_blank" rel="noopener noreferrer">FactSet Research株が本日約5.76%急騰、好決算と業績見通し引き上げが追い風</a></h3>
-        
-        <span class="tag">Investing- Fx</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540373" target="_blank" rel="noopener noreferrer">バジャジ・ファイナンス株が本日上昇している理由とは</a></h3>
-        
-        <span class="tag">Investing- Fx</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://www.sanspo.com/article/20260519-H5FBDY5RDBIQ5AEKYOAYQL3FKQ/" target="_blank" rel="noopener noreferrer">シャキーラ、脱税は無罪 コロンビア出身の人気歌手、スペイン裁判所が当局に返還請求</a></h3>
-        
-        <span class="tag">Sanspo</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://jp.investing.com/news/insider-trading-news/article-93CH-1540372" target="_blank" rel="noopener noreferrer">ウィリアムズ・カンパニーズのSVP、ジャセク氏が約19万5,383ドル相当の株式を売却</a></h3>
-        
-        <span class="tag">Investing- Fx</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://machicon.jp/events/a91YXL/" target="_blank" rel="noopener noreferrer">【着席制・孤立ゼロ】#大規模FES キツネの灯りがふたりを結ぶ、美味しいディナーとハイクラスの出逢いを。</a></h3>
-        <p class="desc">ポイント。初心者に安心の着席街コン。【立席スタイルでよくある不満】。●途中退出者がいて雰囲気が良 ...</p>
-        <span class="tag">Machicon</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://www.sanspo.com/article/20260519-XIW6CH6NMJIFNOKSQEGBOMAKDM/" target="_blank" rel="noopener noreferrer">トランプ氏「早急に動かなければ何も残らない」 イランに再攻撃を示唆、ウラン移送など要求か</a></h3>
-        
-        <span class="tag">Sanspo</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540370" target="_blank" rel="noopener noreferrer">米国債利回り、インフレ懸念で14カ月ぶり高水準に上昇</a></h3>
-        
-        <span class="tag">Investing- Fx</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://news.mynavi.jp/article/20260518-4472730/" target="_blank" rel="noopener noreferrer">史上初のW杯を戦うカーボベルデ代表、本大会に臨む26名のメンバーを発表...グループステージではスペイン代表らと対戦</a></h3>
-        <p class="desc">カーボベルデサッカー協会は18日、FIFAワールドカップ2026に臨む本大会のメンバー26名を発表した。 アフリカ予選でカメルーンを退けたカーボ…</p>
-        <span class="tag">Mynavi News</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://news.mynavi.jp/article/20260518-4472733/" target="_blank" rel="noopener noreferrer">12星座×タロット占い「乙女座(おとめ座)」2026年5月18日(月)~5月24日(日)のあなたの運勢は? 総合運・開運メッセージ</a></h3>
-        <p class="desc">ラジオ発のエンタメニュース&amp;コラム「TOKYO FM+」がお届けする12星座占い「2026年5月18日(月)~5月24日(日)の運勢占い」。12星座×タロッ…</p>
-        <span class="tag">Mynavi News</span>
-      </article>
-      <article class="card">
-        <h3><a href="https://news.mynavi.jp/article/20260518-4472731/" target="_blank" rel="noopener noreferrer">40歳モドリッチが通算5大会目出場へ!...クロアチア代表がW杯に向けた26名&amp;予備メンバー発表</a></h3>
-        <p class="desc">クロアチアサッカー連盟(HNS)は18日、FIFAワールドカップ2026に臨むクロアチア代表の登録メンバー26名と予備メンバー7名を発表した。 直近2大…</p>
-        <span class="tag">Mynavi News</span>
-      </article>
+    <section class="news-section"><div class="section-head" style="border-left:4px solid #22c55e;background:#f0fdf4"><h2 style="color:#166534">🏠 国内ニュース</h2></div><div class="cards"><article class="card card-empty">本日の🏠 国内ニュース情報なし</article></div></section><section class="news-section"><div class="section-head" style="border-left:4px solid #3b82f6;background:#eff6ff"><h2 style="color:#1e40af">🌍 国際・経済ニュース</h2></div><div class="cards"><article class="card"><h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540391" target="_blank" rel="noopener noreferrer">ソシエテ・ジェネラル、情報開示義務違反で2300万ドルの制裁金</a></h3><span class="tag">Investing- Fx</span></article><article class="card"><h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540389" target="_blank" rel="noopener noreferrer">ボルボ・グループ、カリフォルニア州排ガス規制の和解で約197百万ドルの損失計上へ</a></h3><span class="tag">Investing- Fx</span></article><article class="card"><h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540384" target="_blank" rel="noopener noreferrer">AnthropicがStainlessを買収、AIエージェントの接続性強化へ</a></h3><span class="tag">Investing- Fx</span></article><article class="card"><h3><a href="https://jp.investing.com/news/stock-market-news/article-93CH-1540377" target="_blank" rel="noopener noreferrer">ソシエテ・ジェネラル、保険の抱き合わせ開示怠りで2300万ドルの制裁金</a></h3><span class="tag">Investing- Fx</span></article><article class="card"><h3><a href="https://topics.smt.docomo.ne.jp/topnews/business/1000/6b90ce51bf9d196f6e843fba51fe4519" target="_blank" rel="noopener noreferrer">りそなHD 第一ライフG・JCBと協業へ</a></h3><span class="tag">Ｄメニューニュース｜nttドコモ（docomo）のポータルサイト</span></article></div></section><section class="news-section"><div class="section-head" style="border-left:4px solid #a855f7;background:#faf5ff"><h2 style="color:#6b21a8">🎮 ゲームニュース</h2></div><div class="cards"><article class="card card-empty">本日の勝利の女神NIKKE情報なし</article></div></section><section class="news-section"><div class="section-head" style="border-left:4px solid #ec4899;background:#fdf2f8"><h2 style="color:#9d174d">🃏 カードゲームニュース</h2></div><div class="subsections"><div class="subsection"><div class="sub-label" style="color:#9d174d;border-left:3px solid #ec4899">遊戯王</div><div class="cards"><article class="card"><h3><a href="https://news.denfaminicogamer.jp/news/260518o" target="_blank" rel="noopener noreferrer">『遊☆戯☆王』“あの頃”をイメージした「デュエルセット」が登場。「強欲な壺」など決闘者を支えたカードがなんと発売当時のデザインで収録、5月19日より注文受付が開始</a></h3><p class="desc">遊戯編・城之内編・海馬編の全3種がラインナップ。決闘者たちを支えたカードが“初期デザイン”で収録、なんと「強欲な壺」も</p><span class="tag">電ファミニコゲーマー – ゲームの面白い記事読んでみない？</span></article><article class="card"><h3><a href="https://www.4gamer.net/games/775/G077568/20260513012/" target="_blank" rel="noopener noreferrer">「『ヒプノシスマイク -Division Rap Battle-』Rule the Stage -中王区 the LIVE-」レポート。ライブで魅せる彼女たちの気高さや信念</a></h3><p class="desc">2026年5月8日,ライブイベント「『ヒプノシスマイク-DivisionRapBattle-』RuletheStage-中王区theLIVE-」が,神奈…</p><span class="tag">4gamer.net</span></article><article class="card"><h3><a href="https://www.sankei.com/article/20260517-LOLONEZ7ZZPRRGCGM6RWZFQWQQ/" target="_blank" rel="noopener noreferrer">ジェシー&amp;狩野英孝、真剣対決もMC・櫻井翔の“スターぶり”に感心「やっぱりこの人すごい」「完璧なパッケージ」</a></h3><p class="desc">5人組グループ・嵐の櫻井翔がMCを務めるフジテレビ系バラエティ『真剣遊戯!THEバトルSHOW』(毎週月曜 後8:00)18日の放送は、SixTO…</p><span class="tag">産経ニュース</span></article></div></div><div class="subsection"><div class="sub-label" style="color:#9d174d;border-left:3px solid #ec4899">ユニオンアリーナ</div><div class="cards"><article class="card card-empty">本日のユニオンアリーナ情報なし</article></div></div><div class="subsection"><div class="sub-label" style="color:#9d174d;border-left:3px solid #ec4899">ホロライブカードゲーム</div><div class="cards"><article class="card card-empty">本日のホロライブカードゲーム情報なし</article></div></div></div></section><section class="news-section"><div class="section-head" style="border-left:4px solid #f97316;background:#fff7ed"><h2 style="color:#9a3412">💻 IT・テクノロジーニュース</h2></div><div class="cards"><article class="card"><h3><a href="https://news.google.com/rss/articles/CBMiZkFVX3lxTE4zSTVIYnpVQWpzTTJaa3p5dFB3eVFuRHgyZTZNT3pqWEFJQnBtMEJCbVZmUHB1bmw1eE9vR09zX3QwODRDVUVWQ0ZfU0M5Z2k2WE1RRjJZc1l4YUFkZkdDdmV0Y2t5Zw?oc=5" target="_blank" rel="noopener noreferrer">PlayStation Plus一部地域で5月20日より値上げへ。新規の契約に適用 - Game*Spark</a></h3><p class="desc">PlayStation Plus一部地域で5月20日より値上げへ。新規の契約に適用 Game*Spark</p><span class="tag">Google News</span></article><article class="card"><h3><a href="https://prtimes.jp/main/html/rd/p/000000005.000101015.html" target="_blank" rel="noopener noreferrer">愛猫がもっと“くつろげる”連結型ダンボールキャットハウス「ニャンテコッタ!(R)︎ 第2弾 カラータウン」発売</a></h3><span class="tag">Pr Times</span></article><article class="card"><h3><a href="https://news.google.com/rss/articles/CBMiZkFVX3lxTE1PWEhqcUMxeW9Qekd5VzZVSFV6RW5UcW1oQ2NqWktHOGVfME4yVHFfMFRrRFUwbnNJWjRUdmRMSnZKWm9wYUlxV1dyWm5uU050WEdINWh5WU9tUFZNTEItWnRsa0Fzdw?oc=5" target="_blank" rel="noopener noreferrer">【Amazonセール】LGの48V型有機ELテレビ「OLED48B5PJA」(2025年モデル)がお買い得 - GAME Watch</a></h3><p class="desc">【Amazonセール】LGの48V型有機ELテレビ「OLED48B5PJA」(2025年モデル)がお買い得 GAME Watch</p><span class="tag">Google News</span></article><article class="card"><h3><a href="https://news.google.com/rss/articles/CBMiRkFVX3lxTFBFb2ZHNnpramF2NWtoX2lTd2dhYl9XdUZ6STNjUUNHU2haaTg3UmhfNmhlaUtGLWdMMXpuSS1iRFBIUUszLXc?oc=5" target="_blank" rel="noopener noreferrer">日経は社説でデジタル教科書推進など 日刊出版ニュースまとめ 2026.05.19 - HON.jp</a></h3><p class="desc">日経は社説でデジタル教科書推進など 日刊出版ニュースまとめ 2026.05.19 HON.jp Google、AIノートPC「Googlebook」発表…</p><span class="tag">Google News</span></article><article class="card"><h3><a href="https://prtimes.jp/main/html/rd/p/000000003.000174028.html" target="_blank" rel="noopener noreferrer">横須賀市内の小学1~3年生対象、参加無料「かけっこ教室」を2026年6月13日に開催</a></h3><span class="tag">Pr Times</span></article></div></section>
+
   </main>
   <footer class="footer">
-    <p>データ取得元: <a href="https://openweathermap.org" target="_blank">OpenWeather</a> / <a href="https://newsdata.io" target="_blank">NewsData.io</a></p>
-    <p>最終更新: 2026-05-19 13:58 JST</p>
+    <p>データ取得元:
+      <a href="https://openweathermap.org" target="_blank">OpenWeather</a> /
+      <a href="https://newsdata.io" target="_blank">NewsData.io</a>
+    </p>
+    <p>最終更新: 2026-05-19 14:15 JST</p>
   </footer>
 </body>
 </html>
