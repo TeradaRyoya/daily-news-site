@@ -14,7 +14,7 @@ body {
 
 /* Layout */
 .main {
-  max-width: 760px; margin: 20px auto;
+  max-width: 80%; margin: 20px auto;
   padding: 0 16px 48px; display: flex; flex-direction: column; gap: 16px;
 }
 
@@ -39,7 +39,7 @@ body {
   border: 1px solid #e4e4e7; overflow: hidden;
 }
 .section-head { padding: 11px 16px; }
-.section-head h2 { font-size: 0.93rem; font-weight: 700; }
+.section-head h2 { font-size: 20px; font-weight: 700; }
 
 /* Subsections (card games) */
 .subsections { display: flex; flex-direction: column; }
@@ -57,7 +57,7 @@ body {
   border-radius: 6px; border: 1px solid #ececec;
   padding: 11px 13px; margin-bottom: 8px; background: #fafafa;
 }
-.card h3 { font-size: 0.87rem; font-weight: 600; line-height: 1.5; }
+.card h3 { font-size: 0.95rem; font-weight: 600; line-height: 1.5; }
 .card h3 a { text-decoration: none; color: #18181b; }
 .card h3 a:hover { color: #2563eb; text-decoration: underline; }
 .card .desc { font-size: 0.78rem; color: #71717a; margin-top: 4px; }
@@ -83,13 +83,13 @@ body {
 .works-col { padding: 10px 12px 12px; border-top: 1px solid #f0f0f0; }
 .works-col + .works-col { border-left: 1px solid #f0f0f0; }
 .works-label {
-  font-size: 0.75rem; font-weight: 700; padding: 4px 0 8px 8px;
-  letter-spacing: 0.03em;
+  font-size: 0.85rem; font-weight: 700; padding: 4px 0 8px 8px;
+  letter-spacing: 0.03em; margin-bottom: 7px;
 }
 .works-list { list-style: none; padding: 0; margin: 0; }
 .works-item {
-  font-size: 0.82rem; color: #18181b; padding: 6px 8px;
-  border-radius: 5px; margin-bottom: 4px;
+  font-size: 1rem; color: #18181b; padding: 10px 12px;
+  border-radius: 5px; margin-bottom: 6px;
   background: #fafafa; border: 1px solid #ececec; line-height: 1.5;
 }
 .works-item .works-check { margin-right: 6px; font-size: 0.9rem; }
