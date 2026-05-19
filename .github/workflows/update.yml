@@ -31,6 +31,7 @@ jobs:
           NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
           NEWSDATA_COUNTRY: ${{ secrets.NEWSDATA_COUNTRY }}
           NEWSDATA_LANGUAGE: ${{ secrets.NEWSDATA_LANGUAGE }}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
         run: python scripts/generate.py
 
       - name: Commit and push

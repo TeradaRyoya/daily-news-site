@@ -10,6 +10,8 @@ from html import escape
 import feedparser
 import requests
 
+NOTION_WORKS_PAGE_ID = "364f1c78ada280b19e09ec1bdf9361cf"
+
 JST = timezone(timedelta(hours=9))
 WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
 ICON_MAP = {
@@ -146,6 +148,43 @@ def keyword_filter(articles: list, keywords: list) -> list:
     ]
 
 
+def fetch_works(notion_key: str) -> dict:
+    """Fetch schedule and todo items from the Notion Works page."""
+    try:
+        r = requests.get(
+            f"https://api.notion.com/v1/blocks/{NOTION_WORKS_PAGE_ID}/children",
+            headers={"Authorization": f"Bearer {notion_key}", "Notion-Version": "2022-06-28"},
+            timeout=15,
+        )
+        r.raise_for_status()
+        blocks = r.json().get("results", [])
+
+        schedule, todos = [], []
+        section = None
+        for b in blocks:
+            btype = b.get("type")
+            content = b.get(btype, {})
+            rich = content.get("rich_text", [])
+            text = "".join(t.get("plain_text", "") for t in rich)
+
+            if btype == "heading_2":
+                if "予定" in text:
+                    section = "schedule"
+                elif "課題" in text:
+                    section = "todo"
+                else:
+                    section = None
+            elif btype == "bulleted_list_item" and section == "schedule":
+                schedule.append(text)
+            elif btype == "to_do" and section == "todo":
+                todos.append({"text": text, "checked": content.get("checked", False)})
+
+        return {"schedule": schedule, "todos": todos}
+    except Exception as e:
+        print(f"    [warn] notion fetch failed: {e}", file=sys.stderr)
+        return {"schedule": [], "todos": []}
+
+
 def fetch_weather(api_key: str, city: str) -> dict:
     r = requests.get(
         "https://api.openweathermap.org/data/2.5/weather",
@@ -176,6 +215,36 @@ def render_card(article: dict) -> str:
         f'<span class="tag">{source}</span>'
         f'</article>'
     )
+
+
+def render_works(works: dict) -> str:
+    schedule_items = "".join(
+        f'<li class="works-item">{escape(s)}</li>'
+        for s in works["schedule"]
+    ) or '<li class="works-empty">予定なし</li>'
+
+    todo_items = "".join(
+        f'<li class="works-item{"  works-done" if t["checked"] else ""}">'
+        f'<span class="works-check">{"☑" if t["checked"] else "☐"}</span>'
+        f'{escape(t["text"])}</li>'
+        for t in works["todos"]
+    ) or '<li class="works-empty">課題なし</li>'
+
+    return f"""<section class="news-section works-section">
+  <div class="section-head" style="border-left:4px solid #6366f1;background:#eef2ff">
+    <h2 style="color:#3730a3">📌 Works</h2>
+  </div>
+  <div class="works-body">
+    <div class="works-col">
+      <div class="works-label" style="color:#3730a3;border-left:3px solid #6366f1">📅 予定一覧</div>
+      <ul class="works-list">{schedule_items}</ul>
+    </div>
+    <div class="works-col">
+      <div class="works-label" style="color:#3730a3;border-left:3px solid #6366f1">📋 課題</div>
+      <ul class="works-list">{todo_items}</ul>
+    </div>
+  </div>
+</section>"""
 
 
 def render_empty(label: str) -> str:
@@ -309,6 +378,7 @@ def main() -> None:
     ow_key = os.environ.get("OPENWEATHER_API_KEY", "")
     city = os.environ.get("OPENWEATHER_CITY", "Nagoya")
     nd_key = os.environ.get("NEWSDATA_API_KEY", "")
+    notion_key = os.environ.get("NOTION_API_KEY", "")
 
     if not ow_key or not nd_key:
         print("ERROR: OPENWEATHER_API_KEY and NEWSDATA_API_KEY must be set", file=sys.stderr)
@@ -321,6 +391,12 @@ def main() -> None:
     print(f"  Weather: {weather['weather'][0]['description']}, {weather['main']['temp']}°C")
 
     sections_html = []
+
+    if notion_key:
+        print("  Section: 📌 Works")
+        works = fetch_works(notion_key)
+        sections_html.append(render_works(works))
+
     for section in SECTIONS:
         print(f"  Section: {section['title']}")
         sections_html.append(render_section(section, nd_key))
