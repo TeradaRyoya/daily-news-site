@@ -3,9 +3,11 @@
 
 import os
 import sys
+import urllib.parse
 from datetime import datetime, timezone, timedelta
 from html import escape
 
+import feedparser
 import requests
 
 JST = timezone(timedelta(hours=9))
@@ -18,11 +20,19 @@ ICON_MAP = {
     "50d": "🌫️", "50n": "🌫️",
 }
 
+def _gnews_url(query: str) -> str:
+    return f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}&hl=ja&gl=JP&ceid=JP:ja"
+
 # --------------------------------------------------------------------------- #
 # Section definitions
 # type "simple"      : single API call, flat list of cards
 # type "multi"       : multiple API calls merged, deduped by link
 # type "subsections" : one sub-group per game title (required items)
+#
+# Each item/subsection may have:
+#   rss_query       : Google News RSS search query (merged with API results)
+#   rss_size        : max items to take from RSS (default 3)
+#   filter_keywords : post-fetch keyword filter on title+description
 # --------------------------------------------------------------------------- #
 SECTIONS = [
     {
@@ -42,9 +52,12 @@ SECTIONS = [
         "color": "#a855f7", "text": "#6b21a8", "bg": "#faf5ff",
         "type": "multi",
         "items": [
-            {"params": {"language": "ja", "q": "ゲーム 新作 発表", "size": 4}},
+            {"params": {"language": "ja", "q": "ゲーム 新作 発表", "size": 4},
+             "rss_query": "ゲーム 新作 発表", "rss_size": 2},
             {"params": {"language": "ja", "q": "NIKKE 勝利の女神", "size": 3},
-             "required_label": "勝利の女神NIKKE"},
+             "required_label": "勝利の女神NIKKE",
+             "rss_query": "NIKKE 勝利の女神", "rss_size": 3,
+             "filter_keywords": ["NIKKE", "ニッケ", "勝利の女神"]},
         ],
     },
     {
@@ -54,12 +67,15 @@ SECTIONS = [
         "subsections": [
             {"label": "遊戯王",
              "params": {"language": "ja", "q": "遊戯王", "size": 5},
+             "rss_query": "遊戯王 カードゲーム OCG", "rss_size": 3,
              "filter_keywords": ["遊戯王"]},
             {"label": "ユニオンアリーナ",
              "params": {"language": "ja", "q": "ユニオンアリーナ", "size": 5},
+             "rss_query": "ユニオンアリーナ", "rss_size": 3,
              "filter_keywords": ["ユニオンアリーナ"]},
             {"label": "ホロライブカードゲーム",
              "params": {"language": "ja", "q": "ホロライブ カードゲーム", "size": 5},
+             "rss_query": "ホロライブ カードゲーム OCG", "rss_size": 3,
              "filter_keywords": ["ホロライブ"]},
         ],
     },
@@ -85,8 +101,49 @@ def fetch_news(api_key: str, params: dict) -> list:
         r.raise_for_status()
         return r.json().get("results", [])
     except Exception as e:
-        print(f"    [warn] fetch failed: {e}", file=sys.stderr)
+        print(f"    [warn] newsdata fetch failed: {e}", file=sys.stderr)
         return []
+
+
+def fetch_rss(query: str, size: int = 3) -> list:
+    """Fetch articles from Google News RSS and normalize to newsdata format."""
+    try:
+        url = _gnews_url(query)
+        feed = feedparser.parse(url)
+        articles = []
+        for entry in feed.entries[:size]:
+            articles.append({
+                "title": entry.get("title", ""),
+                "description": entry.get("summary", ""),
+                "link": entry.get("link", "#"),
+                "source_name": entry.get("source", {}).get("title", "Google News"),
+            })
+        return articles
+    except Exception as e:
+        print(f"    [warn] rss fetch failed: {e}", file=sys.stderr)
+        return []
+
+
+def merge_articles(primary: list, secondary: list) -> list:
+    """Merge two article lists, deduped by link. Primary comes first."""
+    seen: set = set()
+    result = []
+    for a in primary + secondary:
+        link = a.get("link") or ""
+        if link and link not in seen:
+            seen.add(link)
+            result.append(a)
+    return result
+
+
+def keyword_filter(articles: list, keywords: list) -> list:
+    if not keywords:
+        return articles
+    return [
+        a for a in articles
+        if any(kw in (a.get("title") or "") or kw in (a.get("description") or "")
+               for kw in keywords)
+    ]
 
 
 def fetch_weather(api_key: str, city: str) -> dict:
@@ -145,7 +202,11 @@ def render_section(section: dict, api_key: str) -> str:
         seen: set = set()
         cards_html: list[str] = []
         for item in section["items"]:
-            articles = fetch_news(api_key, item["params"])
+            api_articles = fetch_news(api_key, item["params"])
+            rss_query = item.get("rss_query")
+            rss_articles = fetch_rss(rss_query, item.get("rss_size", 3)) if rss_query else []
+            articles = merge_articles(rss_articles, api_articles)
+            articles = keyword_filter(articles, item.get("filter_keywords", []))
             fresh = [a for a in articles if a.get("link") not in seen]
             for a in fresh:
                 seen.add(a.get("link"))
@@ -159,14 +220,13 @@ def render_section(section: dict, api_key: str) -> str:
     elif stype == "subsections":
         subs: list[str] = []
         for sub in section["subsections"]:
-            articles = fetch_news(api_key, sub["params"])
-            keywords = sub.get("filter_keywords", [])
-            if keywords:
-                articles = [
-                    a for a in articles
-                    if any(kw in (a.get("title") or "") or kw in (a.get("description") or "")
-                           for kw in keywords)
-                ]
+            api_articles = fetch_news(api_key, sub["params"])
+            rss_query = sub.get("rss_query")
+            rss_articles = fetch_rss(rss_query, sub.get("rss_size", 3)) if rss_query else []
+            articles = merge_articles(rss_articles, api_articles)
+            articles = keyword_filter(articles, sub.get("filter_keywords", []))
+            # Show up to 3 cards per subsection
+            articles = articles[:3]
             cards = "".join(render_card(a) for a in articles) if articles else render_empty(sub["label"])
             subs.append(
                 f'<div class="subsection">'
@@ -309,7 +369,8 @@ def render_page(weather: dict, sections_html: list, city: str, now: datetime) ->
   <footer class="footer">
     <p>データ取得元:
       <a href="https://openweathermap.org" target="_blank">OpenWeather</a> /
-      <a href="https://newsdata.io" target="_blank">NewsData.io</a>
+      <a href="https://newsdata.io" target="_blank">NewsData.io</a> /
+      <a href="https://news.google.com" target="_blank">Google News</a>
     </p>
     <p>最終更新: {updated}</p>
   </footer>
