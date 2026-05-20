@@ -177,7 +177,11 @@ def fetch_works(notion_key: str) -> dict:
             elif btype == "bulleted_list_item" and section == "schedule":
                 schedule.append(text)
             elif btype == "to_do" and section == "todo":
-                todos.append({"text": text, "checked": content.get("checked", False)})
+                todos.append({
+                    "id": b.get("id", ""),
+                    "text": text,
+                    "checked": content.get("checked", False),
+                })
 
         return {"schedule": schedule, "todos": todos}
     except Exception as e:
@@ -217,18 +221,23 @@ def render_card(article: dict) -> str:
     )
 
 
-def render_works(works: dict) -> str:
+def render_works(works: dict, proxy_url: str = "") -> str:
     schedule_items = "".join(
         f'<li class="works-item">{escape(s)}</li>'
         for s in works["schedule"]
     ) or '<li class="works-empty">予定なし</li>'
 
     todo_items = "".join(
-        f'<li class="works-item{"  works-done" if t["checked"] else ""}">'
-        f'<span class="works-check">{"☑" if t["checked"] else "☐"}</span>'
-        f'{escape(t["text"])}</li>'
+        f'<li class="works-item{"  works-done" if t["checked"] else ""}" data-block-id="{t["id"]}">'
+        f'<label class="works-check-label">'
+        f'<input type="checkbox" class="todo-checkbox"{"  checked" if t["checked"] else ""} data-block-id="{t["id"]}" />'
+        f'<span>{escape(t["text"])}</span>'
+        f'</label>'
+        f'</li>'
         for t in works["todos"]
     ) or '<li class="works-empty">課題なし</li>'
+
+    proxy_script = f'<script>const NOTION_PROXY = "{proxy_url}";</script>' if proxy_url else ""
 
     return f"""<section class="news-section works-section">
   <div class="section-head" style="border-left:4px solid #6366f1;background:#eef2ff">
@@ -244,7 +253,8 @@ def render_works(works: dict) -> str:
       <ul class="works-list">{todo_items}</ul>
     </div>
   </div>
-</section>"""
+</section>
+{proxy_script}"""
 
 
 def render_empty(label: str) -> str:
@@ -370,6 +380,30 @@ def render_page(weather: dict, sections_html: list, city: str, now: datetime) ->
     {"".join(sections_html)}
 
   </main>
+  <script>
+    document.querySelectorAll('.todo-checkbox').forEach(function(cb) {{
+      cb.addEventListener('change', async function() {{
+        if (!window.NOTION_PROXY) return;
+        const blockId = cb.dataset.blockId;
+        const checked = cb.checked;
+        const item = cb.closest('.works-item');
+        item.classList.toggle('works-done', checked);
+        cb.disabled = true;
+        try {{
+          await fetch(NOTION_PROXY + '/' + blockId, {{
+            method: 'PATCH',
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{ to_do: {{ checked }} }}),
+          }});
+        }} catch(e) {{
+          cb.checked = !checked;
+          item.classList.toggle('works-done', !checked);
+        }} finally {{
+          cb.disabled = false;
+        }}
+      }});
+    }});
+  </script>
   <footer class="footer">
     <p>データ取得元:
       <a href="https://openweathermap.org" target="_blank">OpenWeather</a> /
@@ -407,7 +441,8 @@ def main() -> None:
     if notion_key:
         print("  Section: 📌 Works")
         works = fetch_works(notion_key)
-        sections_html.append(render_works(works))
+        proxy_url = os.environ.get("NOTION_PROXY_URL", "")
+        sections_html.append(render_works(works, proxy_url))
 
     for section in SECTIONS:
         print(f"  Section: {section['title']}")
