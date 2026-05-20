@@ -333,6 +333,18 @@ def render_page(weather: dict, sections_html: list, city: str, now: datetime) ->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{date_str} 天気・ニュース</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="デイリーニュース" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <script>
+    if ('serviceWorker' in navigator) {{
+      window.addEventListener('load', () => {{
+        navigator.serviceWorker.register('service-worker.js');
+      }});
+    }}
+  </script>
 </head>
 <body>
   <header class="header">
