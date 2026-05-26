@@ -85,7 +85,16 @@ SECTIONS = [
         "title": "💻 IT・テクノロジーニュース",
         "color": "#f97316", "text": "#9a3412", "bg": "#fff7ed",
         "type": "simple",
-        "params": {"language": "ja", "category": "technology", "size": 5},
+        "params": {"language": "ja", "category": "technology", "size": 8},
+        "rss_query": "ITニュース テクノロジー 最新 2025", "rss_size": 3,
+        "filter_keywords": [
+            "AI", "人工知能", "テクノロジー", "スマートフォン", "スマホ",
+            "PC", "パソコン", "アプリ", "ソフトウェア", "クラウド",
+            "セキュリティ", "半導体", "CPU", "GPU", "データ",
+            "デジタル", "IoT", "ロボット", "スタートアップ", "プログラム",
+            "Apple", "Google", "Microsoft", "Meta", "Samsung",
+            "iPhone", "Android", "Windows", "Mac", "Linux",
+        ],
     },
 ]
 
@@ -274,6 +283,10 @@ def render_section(section: dict, api_key: str) -> str:
 
     if stype == "simple":
         articles = fetch_news(api_key, section["params"])
+        rss_query = section.get("rss_query")
+        rss_articles = fetch_rss(rss_query, section.get("rss_size", 3)) if rss_query else []
+        articles = merge_articles(articles, rss_articles)
+        articles = keyword_filter(articles, section.get("filter_keywords", []))
         inner = "".join(render_card(a) for a in articles) if articles else render_empty(title)
         body = f'<div class="cards">{inner}</div>'
 
