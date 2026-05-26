@@ -324,7 +324,7 @@ def render_section(section: dict, api_key: str) -> str:
 # --------------------------------------------------------------------------- #
 # Full page
 # --------------------------------------------------------------------------- #
-def render_page(weather: dict, sections_html: list, city: str, now: datetime) -> str:
+def render_page(weather: dict, sections_html: list, city: str, now: datetime, ow_key: str = "") -> str:
     emoji = ICON_MAP.get(weather["weather"][0]["icon"], "🌡️")
     desc = weather["weather"][0]["description"]
     temp = weather["main"]["temp"]
@@ -381,6 +381,34 @@ def render_page(weather: dict, sections_html: list, city: str, now: datetime) ->
 
   </main>
   <script>
+    // ページ読み込み時に天気をリアルタイム取得
+    (async function() {{
+      const ICON_MAP = {{
+        '01d':'☀️','01n':'☀️','02d':'🌤️','02n':'🌤️',
+        '03d':'☁️','03n':'☁️','04d':'☁️','04n':'☁️',
+        '09d':'🌧️','09n':'🌧️','10d':'🌧️','10n':'🌧️',
+        '11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️',
+        '50d':'🌫️','50n':'🌫️',
+      }};
+      try {{
+        const res = await fetch(
+          'https://api.openweathermap.org/data/2.5/weather'
+          + '?q={city}&appid={ow_key}&lang=ja&units=metric'
+        );
+        if (!res.ok) return;
+        const d = await res.json();
+        const emoji = ICON_MAP[d.weather[0].icon] || '🌡️';
+        document.querySelector('.weather-label').textContent = emoji + ' ' + d.name + 'の天気';
+        document.querySelector('.weather-emoji').textContent = emoji;
+        document.querySelector('.weather-temp').textContent = d.main.temp.toFixed(1) + '°C';
+        document.querySelector('.weather-desc').textContent =
+          d.weather[0].description + '（体感 ' + d.main.feels_like.toFixed(1) + '°C）';
+        const meta = document.querySelectorAll('.weather-meta span');
+        if (meta[0]) meta[0].textContent = '💧 湿度 ' + d.main.humidity + '%';
+        if (meta[1]) meta[1].textContent = '🌬️ 風速 ' + d.wind.speed + ' m/s';
+      }} catch(e) {{}}
+    }})();
+
     document.querySelectorAll('.todo-checkbox').forEach(function(cb) {{
       cb.addEventListener('change', async function() {{
         if (!window.NOTION_PROXY) return;
@@ -448,7 +476,7 @@ def main() -> None:
         print(f"  Section: {section['title']}")
         sections_html.append(render_section(section, nd_key))
 
-    html = render_page(weather, sections_html, city, now)
+    html = render_page(weather, sections_html, city, now, ow_key=ow_key)
     out_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "index.html"
     )
