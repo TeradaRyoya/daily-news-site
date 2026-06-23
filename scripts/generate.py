@@ -11,6 +11,7 @@ import feedparser
 import requests
 
 NOTION_WORKS_PAGE_ID = "364f1c78ada280b19e09ec1bdf9361cf"
+NOTION_IDEA_PAGE_ID  = "387f1c78ada2803996d3f0df5d834463"
 
 JST = timezone(timedelta(hours=9))
 WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
@@ -155,6 +156,63 @@ def keyword_filter(articles: list, keywords: list) -> list:
         if any(kw in (a.get("title") or "") or kw in (a.get("description") or "")
                for kw in keywords)
     ]
+
+
+def fetch_notion_idea(notion_key: str) -> dict | None:
+    """Fetch the latest idea from the 一日一個アイデア出し Notion page."""
+    headers = {"Authorization": f"Bearer {notion_key}", "Notion-Version": "2022-06-28"}
+    last_idea = None
+    cursor = None
+    while True:
+        params: dict = {"page_size": 100}
+        if cursor:
+            params["start_cursor"] = cursor
+        try:
+            r = requests.get(
+                f"https://api.notion.com/v1/blocks/{NOTION_IDEA_PAGE_ID}/children",
+                headers=headers, params=params, timeout=15,
+            )
+            r.raise_for_status()
+            data = r.json()
+        except Exception as e:
+            print(f"    [warn] notion idea fetch failed: {e}", file=sys.stderr)
+            return None
+        for block in data.get("results", []):
+            if block.get("type") == "child_page":
+                block_id = block["id"].replace("-", "")
+                last_idea = {
+                    "title": block["child_page"]["title"],
+                    "url": f"https://app.notion.com/p/{block_id}",
+                }
+        if not data.get("has_more"):
+            break
+        cursor = data.get("next_cursor")
+    return last_idea
+
+
+def render_idea(idea: dict | None) -> str:
+    if not idea:
+        return ""
+    import re
+    title = idea["title"]
+    url = idea["url"]
+    m = re.match(r'^(\d{4}-\d{2}-\d{2})\s+(.*)', title)
+    date_tag = m.group(1) if m else ""
+    display = escape(m.group(2) if m else title)
+    tag_html = f'<span class="tag">{escape(date_tag)}</span>' if date_tag else ""
+    return (
+        f'<section class="news-section">'
+        f'<div class="section-head" style="border-left:4px solid #f59e0b;background:#fffbeb">'
+        f'<h2 style="color:#92400e">💡 今日のアイデア</h2>'
+        f'</div>'
+        f'<div class="cards">'
+        f'<div class="card">'
+        f'<h3><a href="{url}" target="_blank" rel="noopener">{display}</a></h3>'
+        f'{tag_html}'
+        f'</div>'
+        f'</div>'
+        f'</section>'
+    )
 
 
 def fetch_works(notion_key: str) -> dict:
@@ -337,7 +395,7 @@ def render_section(section: dict, api_key: str) -> str:
 # --------------------------------------------------------------------------- #
 # Full page
 # --------------------------------------------------------------------------- #
-def render_page(weather: dict, sections_html: list, city: str, now: datetime, ow_key: str = "") -> str:
+def render_page(weather: dict, sections_html: list, city: str, now: datetime, ow_key: str = "", idea: dict | None = None) -> str:
     emoji = ICON_MAP.get(weather["weather"][0]["icon"], "🌡️")
     desc = weather["weather"][0]["description"]
     temp = weather["main"]["temp"]
@@ -390,6 +448,7 @@ def render_page(weather: dict, sections_html: list, city: str, now: datetime, ow
       </div>
     </div>
 
+    {render_idea(idea)}
     {"".join(sections_html)}
 
   </main>
@@ -479,17 +538,21 @@ def main() -> None:
 
     sections_html = []
 
+    idea = None
     if notion_key:
         print("  Section: 📌 Works")
         works = fetch_works(notion_key)
         proxy_url = os.environ.get("NOTION_PROXY_URL", "")
         sections_html.append(render_works(works, proxy_url))
 
+        print("  Section: 💡 今日のアイデア")
+        idea = fetch_notion_idea(notion_key)
+
     for section in SECTIONS:
         print(f"  Section: {section['title']}")
         sections_html.append(render_section(section, nd_key))
 
-    html = render_page(weather, sections_html, city, now, ow_key=ow_key)
+    html = render_page(weather, sections_html, city, now, ow_key=ow_key, idea=idea)
     out_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "index.html"
     )
